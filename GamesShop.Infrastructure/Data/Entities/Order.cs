@@ -33,6 +33,7 @@ namespace GamesShop.Infrastructure.Data.Entities
             [Required]
             public decimal CurrentPrice { get; set; }
 
+            [Range(0,100)]
             [Required]
             public decimal CurrentDiscountPercentage { get; set; }
 

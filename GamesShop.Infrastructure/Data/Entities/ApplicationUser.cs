@@ -13,22 +13,13 @@ namespace GamesShop.Infrastructure.Data.Entities
     {
         [Required]
         [MaxLength(30)]
-        public string UserName { get; set; }
-        [Required]
-        public string Password { get; set; }
-        [Required]
-        [MaxLength(30)]
         public string FirstName {  get; set; }
         [Required]
         [MaxLength(30)]  
         public string LastName { get; set; }
+       
         [Required]
-        public string Email {  get; set; }
-        [Required]
-        [RegularExpression(@"^\+[1-9]\d{1,14}$", ErrorMessage = "Невалиден телефонен номер.")]
-        public string Phone { get; set; }
-        [Required]
-        public Address Address { get; set; }
+        public string Address { get; set; }
 
 
     }
