@@ -25,6 +25,8 @@ namespace GamesShop.Infrastructure.Data.Entities
             [ForeignKey(nameof(Category))]
             public int CategoryId { get; set; }
             public virtual Category Category { get; set; } = null!;
+        [Required]
+        public string Producer {  get; set; } = null!;
 
             public string Picture { get; set; } = null!;
 
