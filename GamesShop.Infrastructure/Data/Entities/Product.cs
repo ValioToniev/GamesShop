@@ -28,6 +28,9 @@ namespace GamesShop.Infrastructure.Data.Entities
         [Required]
         public string Producer {  get; set; } = null!;
 
+        public string Description { get; set; } = null!;
+
+
             public string Picture { get; set; } = null!;
 
             [Range(0, 5000)]

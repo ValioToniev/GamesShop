@@ -1,5 +1,6 @@
 using GamesShop.Infrastructure.Data;
 using GamesShop.Infrastructure.Data.Entities;
+using GamesShop.Infrastructure.Data.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -22,11 +23,12 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     options.Password.RequiredLength = 5;
 }
 )
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
-
+app.PrepareDatabase();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
