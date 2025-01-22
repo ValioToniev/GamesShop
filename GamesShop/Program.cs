@@ -1,3 +1,5 @@
+using GamesShop.Core.Contacts;
+using GamesShop.Core.Services;
 using GamesShop.Infrastructure.Data;
 using GamesShop.Infrastructure.Data.Entities;
 using GamesShop.Infrastructure.Data.Infrastructure;
@@ -10,7 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseLazyLoadingProxies().
+    UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
@@ -26,6 +29,10 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddTransient<ICategoryService, CategoryService>();
+builder.Services.AddTransient<IGenreService, GenreService>();
+
 
 var app = builder.Build();
 app.PrepareDatabase();
