@@ -32,6 +32,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddTransient<ICategoryService, CategoryService>();
 builder.Services.AddTransient<IGenreService, GenreService>();
+builder.Services.AddTransient<IProductService, ProductService>();
 
 
 var app = builder.Build();
