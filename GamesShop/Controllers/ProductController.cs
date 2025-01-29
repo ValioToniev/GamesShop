@@ -1,4 +1,5 @@
 ﻿using GamesShop.Core.Contacts;
+using GamesShop.Infrastructure.Data.Entities;
 using GamesShop.Models.Category;
 using GamesShop.Models.Genre;
 using GamesShop.Models.Product;
@@ -92,23 +93,68 @@ namespace GamesShop.Controllers
         // GET: ProductController/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            Product product = _productService.GetProductById(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            ProductEditVM updatedProduct = new ProductEditVM()
+            {
+                Id = product.Id,
+                ProductName = product.ProductName,
+                GenreId = product.GenreId,
+                // GenreName = product.Genre.GenreName,
+                CategoryId = product.CategoryId,
+                // CategoryName = product.Category.CategoryName,
+                Producer = product.Producer,
+                Picture = product.Picture,
+                Description = product.Description,
+                Quantity = product.Quantity,
+                Price = product.Price,
+                Discount = product.Discount
+            };
+
+            updatedProduct.Genres = _genreService.GetGenres()
+                .Select(g => new GenrePairVM()
+                {
+                    Id = g.Id,
+                    Name = g.GenreName
+                })
+                .ToList();
+
+            updatedProduct.Categories = _categoryService.GetCategories()
+                .Select(c => new CategoryPairVM()
+                {
+                    Id = c.Id,
+                    Name = c.CategoryName
+                })
+                .ToList();
+
+            return View(updatedProduct);
         }
+
 
         // POST: ProductController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, ProductEditVM product)
         {
-            try
+            if (ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                var updated = _productService.Update(id, product.ProductName, product.GenreId,
+                    product.CategoryId, product.Producer, product.Picture, product.Description,
+                    product.Quantity, product.Price, product.Discount);
+
+                if (updated)
+                {
+                    return this.RedirectToAction("Index");
+                }
             }
-            catch
-            {
-                return View();
-            }
+
+            return View(product);
         }
+
 
         // GET: ProductController/Delete/5
         public ActionResult Delete(int id)
