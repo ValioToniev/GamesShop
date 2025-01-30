@@ -45,7 +45,29 @@ namespace GamesShop.Controllers
         // GET: ProductController/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            Product item = _productService.GetProductById(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            ProductDetailsVM product = new ProductDetailsVM()
+            {
+                Id = item.Id,
+                ProductName = item.ProductName,
+                GenreId = item.GenreId,
+                GenreName = item.Genre.GenreName,
+                CategoryId = item.CategoryId,
+                CategoryName = item.Category.CategoryName,
+                Producer = item.Producer,
+                Picture = item.Picture,
+                Description = item.Description,
+                Quantity = item.Quantity,
+                Price = item.Price,
+                Discount = item.Discount
+            };
+
+            return View(product);
         }
 
         // GET: ProductController/Create
