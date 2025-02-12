@@ -3,11 +3,14 @@ using GamesShop.Infrastructure.Data.Entities;
 using GamesShop.Models.Category;
 using GamesShop.Models.Genre;
 using GamesShop.Models.Product;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GamesShop.Controllers
 {
+    [Authorize(Roles = "Administrator")]
     public class ProductController : Controller
     {
         private readonly IProductService _productService;
@@ -21,6 +24,7 @@ namespace GamesShop.Controllers
             this._genreService = genreService;
         }
         // GET: ProductController
+        [AllowAnonymous]
         public ActionResult Index(string searchStringCategoryName, string searchStringGenreName)
         {
             List<ProductIndexVM> products = _productService.GetProducts(searchStringCategoryName, searchStringGenreName)
@@ -43,6 +47,7 @@ namespace GamesShop.Controllers
 
 
         // GET: ProductController/Details/5
+        [AllowAnonymous]
         public ActionResult Details(int id)
         {
             Product item = _productService.GetProductById(id);
@@ -181,22 +186,51 @@ namespace GamesShop.Controllers
         // GET: ProductController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            Product item = _productService.GetProductById(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            ProductDeleteVM product = new ProductDeleteVM()
+            {
+                Id = item.Id,
+                ProductName = item.ProductName,
+                GenreId = item.GenreId,
+                GenreName = item.Genre.GenreName,
+                CategoryId = item.CategoryId,
+                CategoryName = item.Category.CategoryName,
+                Producer = item.Producer,
+                Picture = item.Picture,
+                Description = item.Description,
+                Quantity = item.Quantity,
+                Price = item.Price,
+                Discount = item.Discount
+            };
+
+            return View(product);
         }
+
 
         // POST: ProductController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
         {
-            try
+            var deleted = _productService.RemoveById(id);
+
+            if (deleted)
             {
-                return RedirectToAction(nameof(Index));
+                return this.RedirectToAction("Success");
             }
-            catch
+            else
             {
                 return View();
             }
+        }
+        public IActionResult Success()
+        {
+            return View();
         }
     }
 }
