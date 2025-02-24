@@ -1,4 +1,4 @@
-using GamesShop.Core.Contacts;
+using GamesShop.Core.Contracts;
 using GamesShop.Core.Services;
 using GamesShop.Infrastructure.Data;
 using GamesShop.Infrastructure.Data.Entities;
@@ -33,6 +33,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddTransient<ICategoryService, CategoryService>();
 builder.Services.AddTransient<IGenreService, GenreService>();
 builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IOrderService, OrderService>();
 
 
 var app = builder.Build();

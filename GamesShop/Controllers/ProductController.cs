@@ -1,4 +1,4 @@
-﻿using GamesShop.Core.Contacts;
+﻿using GamesShop.Core.Contracts;
 using GamesShop.Infrastructure.Data.Entities;
 using GamesShop.Models.Category;
 using GamesShop.Models.Genre;
@@ -33,13 +33,16 @@ namespace GamesShop.Controllers
                     Id = product.Id,
                     ProductName = product.ProductName,
                     GenreId = product.GenreId,
-                    GenreName = product.Genre.GenreName,
+                    GenreName = product.Genre?.GenreName,
                     CategoryId = product.CategoryId,
-                    CategoryName = product.Category.CategoryName,
+                    CategoryName = product.Category?.CategoryName, 
+                    Producer = product.Producer, 
                     Picture = product.Picture,
+                    Description = product.Description, 
                     Quantity = product.Quantity,
                     Price = product.Price,
                     Discount = product.Discount
+
                 }).ToList();
 
             return this.View(products);
