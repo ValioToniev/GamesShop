@@ -1,17 +1,24 @@
-﻿using GamesShop.Infrastructure.Data.Entities;
+﻿using GamesShop.Core.Contracts;
+using GamesShop.Infrastructure.Data;
+using GamesShop.Infrastructure.Data.Entities;
 using GamesShop.Models.Client;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GamesShop.Controllers
 {
     public class ClientController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
+        
 
-        public ClientController(UserManager<ApplicationUser> userManager)
+        public ClientController(UserManager<ApplicationUser> userManager,ApplicationDbContext context)
         {
             this._userManager = userManager;
+            this._context = context;
+
         }
 
         // GET: ClientController
@@ -58,6 +65,11 @@ namespace GamesShop.Controllers
                 return NotFound();
             }
 
+            if (_context.Orders.Any(o => o.UserId == id))
+            {
+                return RedirectToAction("Denied");
+            }
+
             ClientDeleteVM userToDelete = new ClientDeleteVM()
             {
                 Id = user.Id,
@@ -65,12 +77,12 @@ namespace GamesShop.Controllers
                 LastName = user.LastName,
                 Address = user.Address,
                 Email = user.Email,
-                UserName = user.UserName
+                UserName = user.UserName,
+                
             };
             return View(userToDelete);
         }
 
-        // POST: ClientController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(ClientDeleteVM bidingModel)
@@ -81,7 +93,10 @@ namespace GamesShop.Controllers
             {
                 return NotFound();
             }
-
+            if (_context.Orders.Any(o => o.UserId == id))
+            {
+                return RedirectToAction("Denied");
+            }
             IdentityResult result = await _userManager.DeleteAsync(user);
             if (result.Succeeded)
             {
@@ -90,7 +105,13 @@ namespace GamesShop.Controllers
             return NotFound();
         }
 
+
         public ActionResult Success()
+        {
+            return View();
+        }
+
+        public ActionResult Denied()
         {
             return View();
         }
