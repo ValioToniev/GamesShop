@@ -1,6 +1,7 @@
 ﻿using GamesShop.Core.Contracts;
 using GamesShop.Infrastructure.Data;
 using GamesShop.Infrastructure.Data.Entities;
+using GamesShop.Infrastructure.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +62,15 @@ namespace GamesShop.Core.Services
             return _context.Orders.Where(x => x.UserId == userId)
                 .OrderByDescending(x => x.OrderDate)
                 .ToList();
+        }
+        public bool UpdateOrderStatus(int orderId, OrderStatus newStatus)
+        {
+            var order = _context.Orders.Find(orderId);
+            if (order == null) return false;
+
+            order.Status = newStatus;
+            _context.Orders.Update(order);
+            return _context.SaveChanges() > 0;
         }
 
     }

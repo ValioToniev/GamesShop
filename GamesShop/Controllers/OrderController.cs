@@ -1,5 +1,6 @@
 ﻿using GamesShop.Core.Contracts;
 using GamesShop.Infrastructure.Data.Entities;
+using GamesShop.Infrastructure.Enums;
 using GamesShop.Models.Order;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -84,6 +85,7 @@ namespace GamesShop.Controllers
                     Price = x.CurrentPrice,
                     Discount = x.CurrentDiscountPercentage,
                     TotalPrice = x.TotalPrice,
+                    Status = x.Status,
                 })
                 .ToList();
 
@@ -118,6 +120,19 @@ namespace GamesShop.Controllers
 
             return View(orders);
         }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        public IActionResult ChangeStatus(int orderId, OrderStatus newStatus)
+        {
+            var updated = _orderService.UpdateOrderStatus(orderId, newStatus);
+            if (updated)
+            {
+                return RedirectToAction("Index");
+            }
+            return BadRequest("Status update failed");
+        }
+
 
 
 

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using GamesShop.Infrastructure.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace GamesShop.Models.Order
 {
@@ -18,6 +19,8 @@ namespace GamesShop.Models.Order
         public decimal Price { get; set; }
         public decimal Discount { get; set; }
         public decimal TotalPrice { get; set; }
+
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
     }
 
 }

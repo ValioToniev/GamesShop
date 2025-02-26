@@ -1,4 +1,5 @@
 ﻿using GamesShop.Infrastructure.Data.Entities;
+using GamesShop.Infrastructure.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace GamesShop.Core.Contracts
         List<Order> GetOrders();
 
         List<Order> GetOrdersByUser(string userId);
+
+        bool UpdateOrderStatus(int orderId, OrderStatus newStatus);
 
         /*  Order GetOrderById(int orderId);
 

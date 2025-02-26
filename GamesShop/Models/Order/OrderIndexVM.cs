@@ -1,4 +1,6 @@
-﻿namespace GamesShop.Models.Order
+﻿using GamesShop.Infrastructure.Enums;
+
+namespace GamesShop.Models.Order
 {
     public class OrderIndexVM
     {
@@ -15,5 +17,7 @@
         public decimal Price { get; set; }
         public decimal Discount { get; set; }
         public decimal TotalPrice { get; set; }
+
+        public OrderStatus Status { get; set; }
     }
 }
