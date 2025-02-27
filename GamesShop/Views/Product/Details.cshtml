@@ -77,7 +77,30 @@
 </div>
 
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    @if (this.User.Identity.IsAuthenticated && this.User.IsInRole("Administrator"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    }
+    @if (this.User.Identity.IsAuthenticated)
+    {
+        <a asp-action="Create" asp-controller="Order" asp-route-id="@Model.Id" class="btn btn-warning">Order</a>
+
+        <!-- Add to Cart Button -->
+        <form asp-action="AddToCart" asp-controller="Cart" method="post" style="display:inline;">
+            <input type="hidden" name="ProductId" value="@Model.Id" />
+            <input type="hidden" name="ProductName" value="@Model.ProductName" />
+            <input type="hidden" name="Picture" value="@Model.Picture" />
+            <!-- Optionally include Quantity if needed, but note your controller action doesn't use it -->
+            <input type="hidden" name="price" value="@Model.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="discount" value="@Model.Discount.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+            <!-- You can remove TotalPrice if it's calculated server-side -->
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+        </form>
+
+
+
+    }
+    
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
 

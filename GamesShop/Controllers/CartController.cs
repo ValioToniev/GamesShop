@@ -1,5 +1,10 @@
 ﻿using GamesShop.Core.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace GamesShop.Controllers
 {
@@ -14,29 +19,55 @@ namespace GamesShop.Controllers
 
         public IActionResult Index()
         {
-            var cart = _cartService.GetCartItems();
-            return View(cart);
+            var productIds = GetCartProductIdsFromCookies();
+            var cartItems = _cartService.GetProductsByIds(productIds);
+            return View(cartItems);
         }
 
         [HttpPost]
-        public IActionResult AddToCart(int ProductId, string ProductName, string Picture, int Quantity, decimal CurrentPrice, decimal CurrentDiscountPercentage, decimal TotalPrice)
+        public IActionResult AddToCart(int productId)
         {
-            // Use the provided values, or compute values as needed
-            _cartService.AddToCart(ProductId, ProductName, Picture, CurrentPrice, CurrentDiscountPercentage);
+            var productIds = GetCartProductIdsFromCookies();
+            if (!productIds.Contains(productId))
+            {
+                productIds.Add(productId);
+                SaveCartProductIdsToCookies(productIds);
+            }
             return RedirectToAction("Index");
         }
 
-
         public IActionResult RemoveFromCart(int productId)
         {
-            _cartService.RemoveFromCart(productId);
+            var productIds = GetCartProductIdsFromCookies();
+            productIds.Remove(productId);
+            SaveCartProductIdsToCookies(productIds);
             return RedirectToAction("Index");
         }
 
         public IActionResult ClearCart()
         {
-            _cartService.ClearCart();
+            Response.Cookies.Delete("ShoppingCart");
             return RedirectToAction("Index");
+        }
+
+        private List<int> GetCartProductIdsFromCookies()
+        {
+            var cookieValue = Request.Cookies["ShoppingCart"];
+            return string.IsNullOrEmpty(cookieValue)
+                ? new List<int>()
+                : JsonConvert.DeserializeObject<List<int>>(cookieValue) ?? new List<int>();
+        }
+
+        private void SaveCartProductIdsToCookies(List<int> productIds)
+        {
+            var options = new CookieOptions
+            {
+                Expires = DateTime.UtcNow.AddDays(3),
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            };
+            Response.Cookies.Append("ShoppingCart", JsonConvert.SerializeObject(productIds), options);
         }
     }
 }

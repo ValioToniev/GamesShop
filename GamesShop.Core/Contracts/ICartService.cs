@@ -10,11 +10,7 @@ namespace GamesShop.Core.Contracts
 {
     public interface ICartService
     {
-        List<CartModel> GetCartItems();
-        Product GetProductById(int productId);
-        void AddToCart(int productId, string productName, string picture, decimal price, decimal discount);
-        void RemoveFromCart(int productId);
-        void ClearCart();
+        public List<CartModel> GetProductsByIds(List<int> productIds);
     }
 
 }

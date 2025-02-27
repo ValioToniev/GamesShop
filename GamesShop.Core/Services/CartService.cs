@@ -15,67 +15,25 @@ namespace GamesShop.Core.Services
 {
     public class CartService : ICartService
     {
-        private const string CartSessionKey = "ShoppingCart";
         private readonly ApplicationDbContext _context;
-        private readonly ISession _session;
 
-        public CartService(IHttpContextAccessor httpContextAccessor,ApplicationDbContext context)
+        public CartService(ApplicationDbContext context)
         {
-            _session = httpContextAccessor.HttpContext!.Session;
-            this._context = context;
+            _context = context;
         }
 
-        public Product GetProductById(int productId)
+        public List<CartModel> GetProductsByIds(List<int> productIds)
         {
-            return _context.Products.FirstOrDefault(p => p.Id == productId);
-        }
-
-        public List<CartModel> GetCartItems()
-        {
-            var value = _session.GetString(CartSessionKey);
-            return value == null ? new List<CartModel>() : JsonConvert.DeserializeObject<List<CartModel>>(value) ?? new List<CartModel>();
-        }
-
-        public void AddToCart(int productId, string productName, string picture, decimal price, decimal discount)
-        {
-            var cart = GetCartItems();
-            var existingItem = cart.FirstOrDefault(p => p.ProductId == productId);
-
-            if (existingItem != null)
+            return _context.Products.Where(p => productIds.Contains(p.Id)).Select(x =>new CartModel
             {
-                existingItem.Quantity++;
-            }
-            else
-            {
-                cart.Add(new CartModel
-                {
-                    ProductId = productId,
-                    ProductName = productName,
-                    Picture = picture,
-                    CurrentPrice = price,
-                    CurrentDiscountPercentage = discount,
-                    Quantity = 1
-                });
-            }
-
-            SaveCart(cart);
-        }
-
-        public void RemoveFromCart(int productId)
-        {
-            var cart = GetCartItems();
-            cart.RemoveAll(p => p.ProductId == productId);
-            SaveCart(cart);
-        }
-
-        public void ClearCart()
-        {
-            _session.Remove(CartSessionKey);
-        }
-
-        private void SaveCart(List<CartModel> cart)
-        {
-            _session.SetString(CartSessionKey, JsonConvert.SerializeObject(cart));
+                ProductId = x.Id,
+                ProductName = x.ProductName,
+                Picture = x.Picture,
+                Quantity = x.Quantity,
+                CurrentPrice = x.Price,
+                CurrentDiscountPercentage = x.Discount,
+                TotalPrice = x.Quantity * x.Price * (1 - x.Discount / 100)
+            }).ToList();
         }
     }
 }
