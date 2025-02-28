@@ -10,6 +10,7 @@ namespace GamesShop.Infrastructure.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
+            Database.EnsureCreated();
         }
         
         public DbSet<Category> Categories { get; set; }
