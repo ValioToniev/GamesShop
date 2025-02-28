@@ -11,6 +11,7 @@ namespace GamesShop.Core.Contracts
     public interface ICartService
     {
         public List<CartModel> GetProductsByIds(List<int> productIds);
+        Product GetProductById(int productId);
     }
 
 }

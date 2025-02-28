@@ -24,16 +24,26 @@ namespace GamesShop.Core.Services
 
         public List<CartModel> GetProductsByIds(List<int> productIds)
         {
-            return _context.Products.Where(p => productIds.Contains(p.Id)).Select(x =>new CartModel
-            {
-                ProductId = x.Id,
-                ProductName = x.ProductName,
-                Picture = x.Picture,
-                Quantity = x.Quantity,
-                CurrentPrice = x.Price,
-                CurrentDiscountPercentage = x.Discount,
-                TotalPrice = x.Quantity * x.Price * (1 - x.Discount / 100)
-            }).ToList();
+            if (productIds == null || !productIds.Any())
+                return new List<CartModel>();
+
+            return _context.Products
+                .Where(p => productIds.Contains(p.Id))
+                .Select(x => new CartModel
+                {
+                    ProductId = x.Id,
+                    ProductName = x.ProductName,
+                    Picture = x.Picture,
+                    Quantity = x.Quantity,
+                    CurrentPrice = x.Price,
+                    CurrentDiscountPercentage = x.Discount,
+                    TotalPrice = x.Quantity * x.Price * (1 - x.Discount / 100)
+                }).ToList();
+        }
+
+        public Product GetProductById(int productId)
+        {
+            return _context.Products.FirstOrDefault(p => p.Id == productId);
         }
     }
 }
