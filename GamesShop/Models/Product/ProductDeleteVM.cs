@@ -36,6 +36,6 @@ namespace GamesShop.Models.Product
         [Display(Name = "Discount")]
         public decimal Discount { get; set; }
     }
-
+    
 
 }

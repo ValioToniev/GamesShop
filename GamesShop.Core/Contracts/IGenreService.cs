@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GamesShop.Core.Contacts
+namespace GamesShop.Core.Contracts
 {
     public interface IGenreService
     {

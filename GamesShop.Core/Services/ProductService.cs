@@ -1,4 +1,4 @@
-﻿using GamesShop.Core.Contacts;
+﻿using GamesShop.Core.Contracts;
 using GamesShop.Infrastructure.Data.Entities;
 using GamesShop.Infrastructure.Data;
 using System;

@@ -5,13 +5,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GamesShop.Infrastructure.Enums;
 
 namespace GamesShop.Infrastructure.Data.Entities
 {
-    
-    
-        public class Order
-        {
+    public class Order
+    {
             public int Id { get; set; }
 
             [Required]
@@ -44,7 +43,9 @@ namespace GamesShop.Infrastructure.Data.Entities
                     return Quantity * CurrentPrice * (1 - CurrentDiscountPercentage / 100);
                 }
             }
-        }
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+
+    }
 
     
 }
