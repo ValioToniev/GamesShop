@@ -10,8 +10,15 @@ namespace GamesShop.Core.Contracts
 {
     public interface ICartService
     {
-        public List<CartModel> GetProductsByIds(List<int> productIds);
-        Product GetProductById(int productId);
+        Dictionary<int, int> GetCart();
+
+        void SaveCart(Dictionary<int, int> cart);
+
+        void AddToCart(int productId);
+
+        List<CartModel> GetCartItems();
+
+        void ClearCart();
     }
 
 }

@@ -2,6 +2,7 @@
 using GamesShop.Infrastructure.Data;
 using GamesShop.Infrastructure.Data.Entities;
 using GamesShop.Infrastructure.Enums;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,67 +13,62 @@ namespace GamesShop.Core.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ICartService _cartService;
+        private readonly ApplicationDbContext _dbContext;
 
-        public OrderService(ApplicationDbContext context)
+        public OrderService(ICartService cartService, ApplicationDbContext dbContext)
         {
-            _context = context;
+            _cartService = cartService;
+            _dbContext = dbContext;
         }
 
-        public bool Create(int productId, string userId, int quantity)
+        public async Task<Order> CreateOrderAsync(string userId)
         {
-            // Find the product by its ID
-            var product = _context.Products.SingleOrDefault(x => x.Id == productId);
-
-            // Check if the product exists
-            if (product == null || product.Quantity < quantity)
+            // Retrieve the cart items from the cookie and database.
+            var cartItems = _cartService.GetCartItems();
+            if (!cartItems.Any())
             {
-                return false; // Return false if the product doesn't exist or not enough stock
+                throw new InvalidOperationException("Cart is empty.");
             }
 
-            // Create a new order
-            Order item = new Order
+            // Create a new order.
+            Order order = new Order
             {
-                OrderDate = DateTime.Now,
-                ProductId = productId,
+                OrderDate = DateTime.UtcNow,
                 UserId = userId,
-                Quantity = quantity,
-                CurrentPrice = product.Price, // Renamed to match Order table
-                CurrentDiscountPercentage = product.Discount // Renamed to match Order table
+                Status = Infrastructure.Enums.OrderStatus.Pending,
+                OrderItems = new System.Collections.Generic.List<OrderItem>()
             };
 
-            // Reduce product stock
-            product.Quantity -= quantity;
+            decimal totalOrderPrice = 0;
 
-            // Save changes
-            _context.Products.Update(product);
-            _context.Orders.Add(item);
-            return _context.SaveChanges() != 0;
+            // For each cart item, create an OrderItem.
+            foreach (var item in cartItems)
+            {
+                // Calculate effective price (after discount).
+                decimal effectivePrice = item.CurrentPrice * (1 - item.CurrentDiscountPercentage / 100);
+                OrderItem orderItem = new OrderItem
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    Price = effectivePrice
+                };
+
+                order.OrderItems.Add(orderItem);
+                totalOrderPrice += effectivePrice * item.Quantity;
+            }
+
+            order.TotalPrice = totalOrderPrice;
+
+            // Save the order in the database.
+            _dbContext.Orders.Add(order);
+            await _dbContext.SaveChangesAsync();
+
+            // Clear the cart after successful order.
+            _cartService.ClearCart();
+
+            return order;
         }
-
-
-
-        public List<Order> GetOrders()
-        {
-            return _context.Orders.OrderByDescending(x => x.OrderDate).ToList();
-        }
-
-        public List<Order> GetOrdersByUser(string userId)
-        {
-            return _context.Orders.Where(x => x.UserId == userId)
-                .OrderByDescending(x => x.OrderDate)
-                .ToList();
-        }
-        public bool UpdateOrderStatus(int orderId, OrderStatus newStatus)
-        {
-            var order = _context.Orders.Find(orderId);
-            if (order == null) return false;
-
-            order.Status = newStatus;
-            _context.Orders.Update(order);
-            return _context.SaveChanges() > 0;
-        }
-
     }
 
 }

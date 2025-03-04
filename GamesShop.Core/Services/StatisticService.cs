@@ -34,7 +34,7 @@ namespace GamesShop.Core.Services
 
         public decimal SumOrders()
         {
-            var suma = _context.Orders.Sum(x => x.Quantity * x.CurrentPrice - x.Quantity * x.CurrentPrice * x.CurrentDiscountPercentage / 100);
+            var suma = _context.Orders.Sum(x => x.TotalPrice);
             return suma;
         }
     }

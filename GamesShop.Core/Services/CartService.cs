@@ -1,49 +1,95 @@
-﻿using GamesShop.Core.Contracts;
-using GamesShop.Infrastructure.Cart;
-using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using GamesShop.Infrastructure.Cart;
 using GamesShop.Infrastructure.Data.Entities;
-using Microsoft.EntityFrameworkCore;
+using GamesShop.Core.Contracts;
 using GamesShop.Infrastructure.Data;
 
 namespace GamesShop.Core.Services
 {
     public class CartService : ICartService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ApplicationDbContext dbContext;
+        private const string CartCookieKey = "cart";
 
-        public CartService(ApplicationDbContext context)
+        public CartService(IHttpContextAccessor httpContextAccessor, 
+            ApplicationDbContext dbContext)
         {
-            _context = context;
+            _httpContextAccessor = httpContextAccessor;
+            this.dbContext = dbContext;
         }
 
-        public List<CartModel> GetProductsByIds(List<int> productIds)
+        public Dictionary<int, int> GetCart()
         {
-            if (productIds == null || !productIds.Any())
-                return new List<CartModel>();
+            var context = _httpContextAccessor.HttpContext;
+            var cartCookie = context.Request.Cookies[CartCookieKey];
+            if (!string.IsNullOrEmpty(cartCookie))
+            {
+                return JsonConvert.DeserializeObject<Dictionary<int, int>>(cartCookie)
+                    ?? new Dictionary<int, int>();
+            }
+            return new Dictionary<int, int>();
+        }
 
-            return _context.Products
-                .Where(p => productIds.Contains(p.Id))
-                .Select(x => new CartModel
+        public void SaveCart(Dictionary<int, int> cart)
+        {
+            var context = _httpContextAccessor.HttpContext;
+            var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(7) };
+            context.Response.Cookies.Append(CartCookieKey, JsonConvert.SerializeObject(cart), cookieOptions);
+        }
+
+        public void AddToCart(int productId)
+        {
+            var cart = GetCart();
+            if (cart.ContainsKey(productId))
+            {
+                cart[productId]++;
+            }
+            else
+            {
+                cart[productId] = 1;
+            }
+            SaveCart(cart);
+        }
+
+        public List<CartModel> GetCartItems()
+        {
+            var cart = GetCart();
+            var productIds = cart.Keys.ToList();
+
+            var products = this.dbContext.Products.Where(p => productIds.Contains(p.Id)).ToList();
+
+            var cartItems = products.Select(product =>
+            {
+                int quantity = cart[product.Id];
+                decimal currentPrice = product.Price;
+                decimal discountPercentage = product.Discount;
+                decimal totalPrice = currentPrice * quantity * (1 - discountPercentage / 100);
+
+                return new CartModel
                 {
-                    ProductId = x.Id,
-                    ProductName = x.ProductName,
-                    Picture = x.Picture,
-                    Quantity = x.Quantity,
-                    CurrentPrice = x.Price,
-                    CurrentDiscountPercentage = x.Discount,
-                    TotalPrice = x.Quantity * x.Price * (1 - x.Discount / 100)
-                }).ToList();
+                    ProductId = product.Id,
+                    ProductName = product.ProductName,
+                    Picture = product.Picture,
+                    Quantity = quantity,
+                    CurrentPrice = currentPrice,
+                    CurrentDiscountPercentage = discountPercentage,
+                    TotalPrice = totalPrice
+                };
+            }).ToList();
+
+            return cartItems;
         }
 
-        public Product GetProductById(int productId)
+        // New method to clear the cart cookie.
+        public void ClearCart()
         {
-            return _context.Products.FirstOrDefault(p => p.Id == productId);
+            var context = _httpContextAccessor.HttpContext;
+            context.Response.Cookies.Delete(CartCookieKey);
         }
     }
+
 }

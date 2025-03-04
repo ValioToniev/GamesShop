@@ -34,7 +34,7 @@ else
                         <td>@Model[i].CurrentPrice</td>
                         <td>@Model[i].CurrentDiscountPercentage%</td>
                         <td>
-                            <input type="number" name="quantities[@Model[i].ProductId]" value="@Model[i].Quantity" min="1" max="@(Model[i].Quantity)" class="form-control" />
+                            <input type="number" name="quantities[@Model[i].ProductId]" value="@Model[i].Quantity" min="1" class="form-control" />
                         </td>
                         <td>@(Model[i].Quantity * Model[i].CurrentPrice * (1 - Model[i].CurrentDiscountPercentage / 100))</td>
                         <td>
@@ -44,7 +44,7 @@ else
                 }
             </tbody>
         </table>
-        <button type="submit" class="btn btn-primary">Update Cart</button>
+        
     </form>
     <a asp-action="ClearCart" class="btn btn-warning">Clear Cart</a>
     <a asp-controller="Order" asp-action="Create" class="btn btn-success">Order</a>
