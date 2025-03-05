@@ -12,7 +12,7 @@
 }
 else
 {
-    <form asp-action="UpdateCart" method="post">
+    <form asp-action="Create" asp-controller="Order" method="post">
         <table class="table">
             <thead>
                 <tr>
@@ -34,7 +34,8 @@ else
                         <td>@Model[i].CurrentPrice</td>
                         <td>@Model[i].CurrentDiscountPercentage%</td>
                         <td>
-                            <input type="number" name="quantities[@Model[i].ProductId]" value="@Model[i].Quantity" min="1" class="form-control" />
+                            <input type="hidden" name="cartItems[@i].ProductId" value="@Model[i].ProductId" />
+                            <input type="number" name="cartItems[@i].Quantity" value="@Model[i].Quantity" min="1" class="form-control" />
                         </td>
                         <td>@(Model[i].Quantity * Model[i].CurrentPrice * (1 - Model[i].CurrentDiscountPercentage / 100))</td>
                         <td>
@@ -44,8 +45,7 @@ else
                 }
             </tbody>
         </table>
-        
+        <button type="submit" class="btn btn-success">Order</button>
     </form>
     <a asp-action="ClearCart" class="btn btn-warning">Clear Cart</a>
-    <a asp-controller="Order" asp-action="Create" class="btn btn-success">Order</a>
 }

@@ -15,6 +15,7 @@ namespace GamesShop.Infrastructure.Data.Entities
 
         [Required]
         public DateTime OrderDate { get; set; }
+        
 
         [Required]
         [ForeignKey(nameof(ApplicationUser))]

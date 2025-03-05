@@ -1,13 +1,9 @@
 ﻿using GamesShop.Core.Contracts;
+using GamesShop.Infrastructure.Cart;
 using GamesShop.Infrastructure.Data;
 using GamesShop.Infrastructure.Data.Entities;
 using GamesShop.Infrastructure.Enums;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GamesShop.Core.Services
 {
@@ -21,32 +17,46 @@ namespace GamesShop.Core.Services
             _cartService = cartService;
             _dbContext = dbContext;
         }
-
-        public async Task<Order> CreateOrderAsync(string userId)
+        public List<Order> GetOrdersByUser(string userId)
         {
-            // Retrieve the cart items from the cookie and database.
-            var cartItems = _cartService.GetCartItems();
-            if (!cartItems.Any())
+            return _dbContext.Orders.Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.OrderDate)
+                .ToList();
+        }
+
+        public List<Order> GetOrders()
+        {
+            return _dbContext.Orders.OrderByDescending(x => x.OrderDate).ToList();
+        }
+
+        public async Task<Order> CreateOrderAsync(string userId, List<CartModel> cartItems)
+        {
+            if (cartItems == null || !cartItems.Any())
             {
                 throw new InvalidOperationException("Cart is empty.");
             }
 
-            // Create a new order.
             Order order = new Order
             {
                 OrderDate = DateTime.UtcNow,
                 UserId = userId,
-                Status = Infrastructure.Enums.OrderStatus.Pending,
-                OrderItems = new System.Collections.Generic.List<OrderItem>()
+                Status = OrderStatus.Pending,
+                OrderItems = new List<OrderItem>()
             };
 
             decimal totalOrderPrice = 0;
 
-            // For each cart item, create an OrderItem.
             foreach (var item in cartItems)
             {
-                // Calculate effective price (after discount).
+                var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == item.ProductId);
+
+                if (product == null || product.Quantity < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Not enough stock for {item.ProductName}. Available: {product?.Quantity ?? 0}");
+                }
+
                 decimal effectivePrice = item.CurrentPrice * (1 - item.CurrentDiscountPercentage / 100);
+
                 OrderItem orderItem = new OrderItem
                 {
                     ProductId = item.ProductId,
@@ -55,19 +65,30 @@ namespace GamesShop.Core.Services
                 };
 
                 order.OrderItems.Add(orderItem);
+
+                // 🔹 Reduce stock
+                product.Quantity -= item.Quantity;
+                _dbContext.Products.Update(product);
+
                 totalOrderPrice += effectivePrice * item.Quantity;
             }
 
             order.TotalPrice = totalOrderPrice;
 
-            // Save the order in the database.
             _dbContext.Orders.Add(order);
             await _dbContext.SaveChangesAsync();
 
-            // Clear the cart after successful order.
             _cartService.ClearCart();
-
             return order;
+        }
+        public bool UpdateOrderStatus(int orderId, OrderStatus newStatus)
+        {
+            var order = _dbContext.Orders.Find(orderId);
+            if (order == null) return false;
+
+            order.Status = newStatus;
+            _dbContext.Orders.Update(order);
+            return _dbContext.SaveChanges() > 0;
         }
     }
 
